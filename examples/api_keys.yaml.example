@@ -1,0 +1,35 @@
+# API Configuration for Email CRM Sync
+
+# OpenAI API Key (required)
+# Get from: https://platform.openai.com/api-keys
+openai_api_key: "your_openai_api_key_here"
+
+# Zoho CRM Access Token (required)
+# Get from: https://api-console.zoho.com/ > Create Self Client > Generate Token
+zoho_access_token: "your_zoho_access_token_here"
+
+# Zoho server region (change if not using .com)
+# Options: "com", "eu", "in", "com.au", "jp"
+zoho_data_center: "com"
+
+# Gmail Credentials Path (required)
+# Path to your Gmail OAuth2 credentials JSON file
+gmail_credentials_path: "path/to/your/gmail_credentials.json"
+
+# Optional Configuration
+zoho_base_url: "https://www.zohoapis.com/crm/v8"
+# Custom module name for developments (default: "Deals", but often customized to "Developments")
+zoho_developments_module: "Developments"
+email_batch_size: 10
+log_level: "INFO"
+
+# Development Configuration
+# Set to true to enable debug mode
+debug_mode: false
+
+# Email Processing Settings
+# Maximum number of emails to process in one batch
+max_emails_per_run: 50
+
+# How often to check for new emails when monitoring (seconds)
+monitoring_interval: 300

@@ -1,3 +1,272 @@
+# ⚠️  CRITICAL SECURITY WARNING ⚠️
+# This project contains API keys, OAuth tokens, and other sensitive information.
+# NEVER commit files containing:
+# - API keys (OpenAI, Zoho, Gmail)
+# - OAuth tokens and refresh tokens  
+# - Client secrets and credentials
+# - Personal email content or attachments
+#
+# Before initializing git repository, verify no sensitive files are tracked:
+# git ls-files | grep -E "(api_keys|credentials|token|secret)"
+#
+# If sensitive files are already tracked, remove them:
+# git rm --cached path/to/sensitive/file
+# git commit -m "Remove sensitive files from tracking"
+
+# =============================================================================
+# SENSITIVE INFORMATION - NEVER COMMIT THESE!
+# ====================================================# =============================================================================
+# TESTING AND CI/CD
+# =============================================================================
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Test configuration files (may contain test API keys)
+test_config.yaml
+test_api_keys.yaml
+testing_credentials.json
+test_secrets.json
+
+# Test output files (may contain sensitive data)
+test_output/
+test_logs/
+test_email_dump.json
+
+# mypy
+.mypy_cache/
+.dmypi.json
+dmypy.json
+
+# =============================================================================
+# DEVELOPMENT SECURITY
+# =============================================================================
+
+# Personal notes and TODO files (may contain sensitive info)
+TODO.txt
+NOTES.txt
+personal_notes.md
+development_notes.md
+api_notes.txt
+
+# Local configuration overrides
+local.py
+local_config.py
+dev_settings.py
+personal_config.yaml
+
+# SSH and deployment keys
+id_rsa
+id_rsa.pub
+deploy_key
+deployment.key
+
+# Service account files
+service-account.json
+service_account_key.json
+gcp-key.json
+aws-credentials.json========
+
+# API Configuration Files (all possible locations)
+config/api_keys.yaml
+email_crm_sync/config/api_keys.yaml
+api_keys.yaml
+**/api_keys.yaml
+**/config/api_keys.yaml
+
+# Environment Files
+.env
+.env.*
+.environment
+*.env
+
+# OAuth2 and Gmail Authentication Files
+gmail_credentials.json
+credentials.json
+client_secret*.json
+google_credentials.json
+oauth2_credentials.json
+token.pickle
+gmail_token.pickle
+*_token.pickle
+*.token
+*.tokens
+
+# Zoho API Credentials and Tokens
+zoho_refresh_token.txt
+zoho_access_token.txt
+zoho_credentials.json
+zoho_oauth_token.txt
+zoho_client_secret.txt
+
+# OpenAI API Keys (in case stored separately)
+openai_api_key.txt
+openai_credentials.json
+
+# Other Authentication Files
+refresh_token.txt
+access_token.txt
+client_secret.txt
+api_secret.txt
+
+# Certificate and Key Files
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+
+# Configuration Files with Secrets
+secrets.yaml
+secrets.json
+secrets.toml
+secrets.ini
+config.ini
+settings.yaml
+local_settings.py
+
+# Backup Configuration Files (often contain sensitive data)
+*.yaml.bak
+*.json.bak
+*.env.bak
+*_backup.*
+
+# =============================================================================
+# PYTHON ENVIRONMENT
+# =============================================================================
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+conda/
+
+# =============================================================================
+# DEVELOPMENT TOOLS
+# =============================================================================
+
+# IDE and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# =============================================================================
+# APPLICATION SPECIFIC
+# =============================================================================
+
+# Logs (may contain sensitive information)
+*.log
+logs/
+debug.log
+application.log
+email_crm_sync.log
+zoho_api.log
+gmail_api.log
+
+# Temporary files and directories
+*.tmp
+*.temp
+temp/
+temporary/
+temp_attachments/
+downloads/
+
+# Cache directories (may contain API responses)
+.cache/
+cache/
+__pycache__/
+.pytest_cache/
+
+# Output files (may contain sensitive data)
+zoho_modules_discovery.json
+test_results/
+output/
+processed_emails/
+email_exports/
+
+# Database files (may contain cached sensitive data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Debug and diagnostic files
+debug_output.txt
+api_responses/
+diagnostic_data/
+
+# Email content dumps (potentially sensitive)
+email_dump.json
+email_content.txt
+processed_emails.csv
+
+# =============================================================================
+# TESTING AND CI/CD
+# =============================================================================
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
