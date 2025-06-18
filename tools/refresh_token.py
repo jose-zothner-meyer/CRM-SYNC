@@ -11,16 +11,23 @@ from pathlib import Path
 def load_config():
     """Load API configuration"""
     config_paths = [
-        '../config/api_keys.yaml',
-        '../email_crm_sync/config/api_keys.yaml'
+        '../email_crm_sync/config/api_keys.yaml',  # From tools/ subdirectory
+        '../config/api_keys.yaml',                 # From tools/ to project root config
+        'config/api_keys.yaml',                    # From project root
+        'email_crm_sync/config/api_keys.yaml'      # From project root to package config
     ]
     
     for path in config_paths:
         if Path(path).exists():
             with open(path, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
+            print(f"✅ Using config: {path}")
             return config, path
     
+    print("❌ Config file not found!")
+    print("   Searched in:")
+    for path in config_paths:
+        print(f"   - {path}")
     raise FileNotFoundError("No config file found")
 
 def refresh_zoho_token(config):

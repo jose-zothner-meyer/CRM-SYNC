@@ -12,6 +12,12 @@ zoho_access_token: "your_zoho_access_token_here"
 # Options: "com", "eu", "in", "com.au", "jp"
 zoho_data_center: "com"
 
+# Zoho Authorization Code (temporary, for token exchange only)
+# WARNING: Never commit actual authorization codes to version control!
+# Get this from the OAuth URL and replace immediately after use
+# The script will automatically clear this field after successful token exchange
+zoho_authorization_code: "your_temporary_authorization_code_here"
+
 # Gmail Credentials Path (required)
 # Path to your Gmail OAuth2 credentials JSON file
 gmail_credentials_path: "path/to/your/gmail_credentials.json"
