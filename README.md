@@ -374,3 +374,100 @@ CRM-SYNC/
 - **Secure authorization code handling**: Multiple secure input methods
 - **Config file validation**: Ensures proper configuration setup
 - **Comprehensive testing**: Full test suite for reliability
+
+## 📖 Documentation
+
+- **[Complete Setup Guide](docs/SETUP_GUIDE.md)** - Detailed setup instructions
+- **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Architecture overview
+- **[Enhanced OpenAI Client](docs/ENHANCED_OPENAI_CLIENT.md)** - AI processing documentation
+
+## 📚 Resources & Documentation
+
+### 🔗 Zoho CRM API Documentation
+
+- **[Zoho CRM API v8 Overview](https://www.zoho.com/crm/developer/docs/api-directory.html)** - Complete API directory
+- **[API Console (EU)](https://api-console.zoho.eu)** - Developer console for EU data center
+- **[API Console (US)](https://api-console.zoho.com)** - Developer console for US data center
+- **[Authentication & Scopes](https://www.zoho.com/crm/developer/docs/api/v8/scopes.html)** - OAuth scopes reference
+- **[OAuth 2.0 Setup Guide](https://www.zoho.com/crm/developer/docs/api/v8/oauth-overview.html)** - Complete OAuth setup
+- **[Modules API](https://www.zoho.com/crm/developer/docs/api/v8/modules-api.html)** - Properties/Developments management
+- **[COQL Query API](https://www.zoho.com/crm/developer/docs/api/v8/Get-Records-through-COQL-Query.html)** - Advanced search queries
+- **[Get Notes API](https://www.zoho.com/crm/developer/docs/api/v8/get-notes.html)** - Retrieve record notes
+- **[Create Note API](https://www.zoho.com/crm/developer/docs/api/v8/create-notes.html)** - Add notes to records
+- **[Attachments API](https://www.zoho.com/crm/developer/docs/api/v8/upload-attachment.html)** - File attachments
+- **[Data Centers & Domains](https://www.zoho.com/crm/developer/docs/api/v8/multi-dc.html)** - Multi-region support
+
+### 📧 Gmail API Documentation
+
+- **[Gmail API Overview](https://developers.google.com/gmail/api/guides)** - Complete Gmail API guide
+- **[Google Cloud Console](https://console.cloud.google.com/)** - Project and credentials management
+- **[Authentication & OAuth 2.0](https://developers.google.com/gmail/api/auth/web-server)** - OAuth setup for Gmail
+- **[Messages API](https://developers.google.com/gmail/api/reference/rest/v1/users.messages)** - Email messages reference
+- **[Labels API](https://developers.google.com/gmail/api/reference/rest/v1/users.labels)** - Gmail labels management
+- **[Gmail API Python Client](https://github.com/googleapis/google-api-python-client)** - Official Python library
+- **[Enable Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com)** - Enable API in project
+- **[OAuth Consent Screen](https://console.cloud.google.com/apis/credentials/consent)** - Configure consent screen
+- **[Scopes Reference](https://developers.google.com/gmail/api/auth/scopes)** - Gmail API scopes
+
+### 🤖 OpenAI API Documentation
+
+- **[OpenAI API Overview](https://platform.openai.com/docs/api-reference)** - Complete API reference
+- **[Chat Completions](https://platform.openai.com/docs/api-reference/chat)** - Chat API for email analysis
+- **[Authentication](https://platform.openai.com/docs/api-reference/authentication)** - API key authentication
+- **[Models Documentation](https://platform.openai.com/docs/models)** - Available AI models
+- **[Rate Limits](https://platform.openai.com/docs/guides/rate-limits)** - Usage limits and optimization
+- **[Best Practices](https://platform.openai.com/docs/guides/production-best-practices)** - Production deployment
+- **[API Keys Management](https://platform.openai.com/api-keys)** - Manage your API keys
+- **[Usage Dashboard](https://platform.openai.com/usage)** - Monitor API usage
+
+### 🐍 Python Libraries Used
+
+- **[Google API Python Client](https://github.com/googleapis/google-api-python-client)** - Official Google APIs client
+- **[OpenAI Python Library](https://github.com/openai/openai-python)** - Official OpenAI client
+- **[Requests](https://docs.python-requests.org/)** - HTTP library for API calls
+- **[PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)** - YAML configuration parsing
+- **[Python Email Utils](https://docs.python.org/3/library/email.html)** - Built-in email processing
+
+### 📖 Setup Guides & Tutorials
+
+- **[Zoho CRM Custom Module Setup](docs/ZOHO_SETUP_GUIDE.md)** - Detailed Zoho configuration
+- **[Complete Setup Guide](docs/SETUP_GUIDE.md)** - End-to-end system setup
+- **[Gmail API Python Quickstart](https://developers.google.com/gmail/api/quickstart/python)** - Official Gmail setup
+- **[OpenAI API Getting Started](https://platform.openai.com/docs/quickstart)** - OpenAI API basics
+- **[OAuth 2.0 for Web Applications](https://developers.google.com/identity/protocols/oauth2/web-server)** - OAuth implementation
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## ⚠️ Important Notes
+
+### Security Considerations
+- **Never commit API keys** to version control
+- **Use environment variables** for production deployments
+- **Regularly rotate API keys** for security
+- **Review OAuth scopes** periodically
+
+### API Limits & Quotas
+- **Gmail API**: 1 billion quota units per day
+- **OpenAI API**: Varies by tier and model
+- **Zoho CRM API**: 5,000 credits per day (sandbox), varies by plan
+
+### Production Deployment
+- Monitor email processing volumes
+- Set up proper logging and alerting
+- Configure automatic token refresh
+- Implement proper error handling and retry logic
+
+## 📞 Support
+
+- **Documentation**: [docs/](docs/) directory contains comprehensive guides
+- **Issues**: Report bugs and feature requests via GitHub Issues
+- **Setup Help**: Follow [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) for detailed instructions
+
+---
+
+**Status**: Production Ready ✅  
+**Last Updated**: June 2025
