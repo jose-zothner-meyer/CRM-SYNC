@@ -155,7 +155,7 @@ class Records:
             
             # Add duplicate check if specified
             if duplicate_check_fields:
-                payload["duplicate_check_fields"] = duplicate_check_fields
+                payload["duplicate_check_fields"] = [{"field": field} for field in duplicate_check_fields]
             
             response = self.session.post(url, json=payload, timeout=self.timeout)
             

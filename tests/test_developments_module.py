@@ -26,6 +26,8 @@ def test_developments_module():
         
         # Initialize Zoho client with custom module
         logger.info(f"Initializing Zoho client with module: {config.zoho_developments_module}")
+        if not isinstance(config.zoho_token, str) or not config.zoho_token:
+            raise ValueError("Zoho access token (config.zoho_token) must be a non-empty string.")
         zoho = ZohoV8EnhancedClient(
             access_token=config.zoho_token,
             data_center="eu",  # or whatever your data center is

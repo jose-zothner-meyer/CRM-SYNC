@@ -194,8 +194,8 @@ class Modules:
         Returns:
             Dict containing test results
         """
+        module_name = module or self.client.developments_module
         try:
-            module_name = module or self.client.developments_module
             
             logger.info("Testing access to module: %s", module_name)
             
