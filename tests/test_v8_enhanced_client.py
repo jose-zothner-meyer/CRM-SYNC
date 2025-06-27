@@ -17,7 +17,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from email_crm_sync.clients.zoho_v8_enhanced_client import ZohoV8EnhancedClient
-from email_crm_sync.config.loader import ConfigLoader
+from email_crm_sync.config import config
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -28,7 +28,6 @@ class V8ClientTester:
     
     def __init__(self):
         self.client: Optional[ZohoV8EnhancedClient] = None
-        self.config: Optional[ConfigLoader] = None
         self.test_results: Dict[str, Any] = {
             "connection": None,
             "module_discovery": None,
@@ -43,11 +42,8 @@ class V8ClientTester:
     def initialize_client(self) -> bool:
         """Initialize the V8 client with configuration."""
         try:
-            # Load configuration
-            self.config = ConfigLoader()
-            
-            # Get Zoho configuration
-            zoho_config = self.config.get_zoho_config()
+            # Use centralized configuration
+            zoho_config = config.get_zoho_config()
             
             if not zoho_config or not zoho_config.get('access_token'):
                 logger.error("❌ No Zoho access token found in configuration")

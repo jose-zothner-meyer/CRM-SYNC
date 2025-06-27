@@ -4,9 +4,27 @@ from pathlib import Path
 from typing import Optional
 
 class ConfigLoader:
+    """
+    Singleton ConfigLoader to ensure consistent configuration across the application.
+    
+    This class implements the singleton pattern to prevent multiple instances
+    from loading configuration multiple times, which improves performance and
+    ensures consistency across the application.
+    """
+    _instance = None
+    _initialized = False
+    def __new__(cls, path: Optional[str] = None):
+        """Implement singleton pattern"""
+        if cls._instance is None:
+            cls._instance = super(ConfigLoader, cls).__new__(cls)
+        return cls._instance
+    
     def __init__(self, path: Optional[str] = None):
         """Load configuration from YAML file or environment variables"""
-        
+        # Only initialize once
+        if self._initialized:
+            return
+            
         # Try to load from YAML file first
         if path is None:
             path = self._find_config_file()
@@ -18,6 +36,9 @@ class ConfigLoader:
             
         # Validate required configuration
         self._validate_config()
+        
+        # Mark as initialized
+        self._initialized = True
     
     def _find_config_file(self) -> Optional[str]:
         """Find the configuration file in common locations"""

@@ -13,8 +13,8 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from email_crm_sync.config.loader import ConfigLoader
-from email_crm_sync.services.enhanced_processor import EnhancedEmailProcessor
+from email_crm_sync.config import config
+from email_crm_sync.services.email_processor import EmailProcessor
 
 def create_mock_processor_summary():
     """Create a mock summary showing what property updates would look like"""

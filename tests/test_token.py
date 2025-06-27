@@ -10,7 +10,7 @@ def test_zoho_token():
     """Test if the Zoho access token is valid"""
     
     # Load the token from config
-    with open('../email_crm_sync/config/api_keys.yaml', 'r') as file:
+    with open('email_crm_sync/config/api_keys.yaml', 'r') as file:
         config = yaml.safe_load(file)
     
     access_token = config['zoho_access_token']
@@ -47,7 +47,7 @@ def test_zoho_token():
             print("   ✅ User info test PASSED")
         else:
             print(f"   ❌ User info test FAILED: {response.text}")
-            return False
+            assert False, f"User info test failed: {response.text}"
         
         # Test 2: Get modules
         print("\n2. Testing modules...")
@@ -100,11 +100,11 @@ def test_zoho_token():
         else:
             print(f"   ❌ Word search test FAILED: {response.text}")
         
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ Test failed with exception: {e}")
-        return False
+        assert False, f"Test failed with exception: {e}"
 
 if __name__ == "__main__":
     test_zoho_token()

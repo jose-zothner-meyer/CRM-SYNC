@@ -11,7 +11,7 @@ import os
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from email_crm_sync.config.loader import ConfigLoader
+from email_crm_sync.config import config
 from email_crm_sync.clients.zoho_v8_enhanced_client import ZohoV8EnhancedClient
 
 # Configure logging
@@ -21,9 +21,8 @@ logger = logging.getLogger(__name__)
 def test_developments_module():
     """Test the custom Developments module in Zoho CRM"""
     try:
-        # Load configuration
-        logger.info("Loading configuration...")
-        config = ConfigLoader()
+        # Use centralized configuration
+        logger.info("Using centralized configuration...")
         
         # Initialize Zoho client with custom module
         logger.info(f"Initializing Zoho client with module: {config.zoho_developments_module}")
@@ -88,15 +87,19 @@ def test_developments_module():
         
     except Exception as e:
         logger.error(f"Test failed: {e}")
-        return False
+        assert False, f"Test failed: {e}"
     
-    return True
+    assert True
 
 if __name__ == "__main__":
     print("🔧 Testing Zoho CRM Developments Module Integration")
     print("=" * 60)
     
-    success = test_developments_module()
+    try:
+        test_developments_module()
+        success = True
+    except AssertionError:
+        success = False
     
     print("\n" + "=" * 60)
     if success:

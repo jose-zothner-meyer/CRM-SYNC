@@ -8,20 +8,19 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from email_crm_sync.clients.openai_client import EnhancedOpenAIProcessor
-from email_crm_sync.config.loader import ConfigLoader
+from email_crm_sync.config import config
 
 def test_enhanced_openai():
     """Test the enhanced OpenAI processing capabilities"""
     
-    # Load configuration
+    # Use centralized configuration
     try:
-        config_loader = ConfigLoader()
-        openai_api_key = config_loader.openai_key
+        openai_api_key = config.openai_key
         if not openai_api_key:
             raise ValueError("OpenAI API key not found in configuration")
     except Exception as e:
         print(f"❌ Error loading configuration: {e}")
-        return False
+        assert False, f"Error loading configuration: {e}"
     
     # Initialize the enhanced processor
     try:
@@ -29,7 +28,7 @@ def test_enhanced_openai():
         print("✅ EnhancedOpenAIProcessor initialized successfully")
     except Exception as e:
         print(f"❌ Error initializing processor: {e}")
-        return False
+        assert False, f"Error initializing processor: {e}"
     
     # Test email content
     test_subject = "Re: Wellington Park Development - Site Visit Scheduled"
@@ -115,20 +114,24 @@ Email: sarah@abcproperty.co.uk
             print(f"    Reasons: {match['match_reasons']}")
         
         print("\n✅ All tests completed successfully!")
-        return True
+        assert True
         
     except Exception as e:
         print(f"❌ Error during processing: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        assert False, f"Error during processing: {e}"
 
 def main():
     """Main test function"""
     print("🚀 Enhanced OpenAI Client Test")
     print("=" * 50)
     
-    success = test_enhanced_openai()
+    try:
+        test_enhanced_openai()
+        success = True
+    except AssertionError:
+        success = False
     
     if success:
         print("\n🎉 Enhanced OpenAI client is working correctly!")

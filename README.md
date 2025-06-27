@@ -231,6 +231,28 @@ python tests/test_authentication.py
 
 ## 🔧 Configuration
 
+### Configuration Management
+
+The application uses a **centralized configuration system** that ensures consistent settings across all components:
+
+```python
+# Import centralized configuration (recommended)
+from email_crm_sync.config import config
+
+# Access configuration values directly
+openai_key = config.openai_key
+zoho_token = config.zoho_token
+zoho_config = config.get_zoho_config()
+```
+
+**Benefits:**
+- ✅ Configuration loaded only once (better performance)
+- ✅ Consistent settings across all modules
+- ✅ Singleton pattern prevents duplicate instances
+- ✅ Thread-safe configuration access
+
+### Configuration File
+
 Your main configuration file is:
 **`config/api_keys.yaml`**
 
@@ -242,6 +264,7 @@ It contains:
 - Module configurations
 
 **⚠️ Keep this file secure!** Never share it or commit it to version control.
+
 
 Key settings:
 - `zoho_developments_module`: Currently set to "Accounts"
@@ -471,3 +494,91 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Status**: Production Ready ✅  
 **Last Updated**: June 2025
+
+## 🔧 Refactored Architecture (New Features)
+
+### Enhanced Main Application
+The project now includes a refactored version with improved architecture:
+
+```bash
+# Use the refactored main application
+python main_refactored.py run --mode once           # Process emails once
+python main_refactored.py run --mode monitor        # Monitor continuously  
+python main_refactored.py token refresh             # Refresh expired tokens
+python main_refactored.py token exchange --code "..." # Exchange auth code
+python main_refactored.py health                    # Run health checks
+python main_refactored.py discover                  # Discover Zoho modules
+```
+
+### Key Improvements in Refactored Version:
+- **Centralized Configuration**: Single configuration instance shared across the application
+- **Custom Exceptions**: Application-specific exception handling for better debugging
+- **Modular Zoho Client**: Separated into focused components (Notes, Search)
+- **Enhanced CLI**: Consolidated command-line interface for all operations
+- **Better Error Handling**: Specific exception types instead of generic catches
+
+### Architecture Components:
+- `email_crm_sync/config/__init__.py` - Centralized configuration management
+- `email_crm_sync/exceptions.py` - Custom exception definitions
+- `email_crm_sync/services/base_processor.py` - Abstract base for processors
+- `email_crm_sync/clients/zoho/` - Modular Zoho client components
+- `main_refactored.py` - Enhanced main application with CLI
+
+## 🏗️ Refactored Architecture
+
+### Modular Zoho Client
+
+The Zoho CRM client has been refactored into focused modular components for better maintainability and extensibility:
+
+```python
+from email_crm_sync.clients.zoho_v8_enhanced_client import ZohoV8EnhancedClient
+from email_crm_sync.config import config
+
+# Initialize client with modular components
+client = ZohoV8EnhancedClient(
+    access_token=config.zoho_token,
+    data_center=config.zoho_data_center,
+    developments_module=config.zoho_developments_module
+)
+
+# Use focused components
+client.notes.create(parent_id, content, title)        # Note operations
+client.search.by_email("test@example.com")            # Search operations
+client.modules.discover()                             # Module discovery
+client.records.get("record_id")                       # Record operations
+client.developments.find_by_address("123 Main St")    # Development-specific
+```
+
+### Component Architecture
+
+```
+ZohoV8EnhancedClient (Main)
+├── 📝 Notes      - Note creation, retrieval, updates
+├── 🔍 Search     - Email, word, criteria, COQL queries
+├── 📦 Modules    - Module discovery and metadata
+├── 📋 Records    - Basic CRUD operations
+└── 🏠 Developments - Domain-specific operations
+```
+
+**Benefits:**
+- ✅ **Single Responsibility** - Each component has one clear purpose
+- ✅ **Better Testing** - Components can be tested independently
+- ✅ **Easier Maintenance** - Bugs are isolated to specific components
+- ✅ **Backward Compatible** - Existing code continues to work
+- ✅ **Performance** - Shared resources with intelligent caching
+
+### Migration Examples
+
+```python
+# Old way (still works)
+client.create_note(parent_id, content, title)
+client.discover_modules()
+client.find_development_by_email("test@example.com")
+
+# New way (recommended)
+client.notes.create(parent_id, content, title)
+client.modules.discover()
+client.developments.find_by_email("test@example.com")
+```
+
+See `docs/ZOHO_CLIENT_REFACTORING.md` for detailed documentation.

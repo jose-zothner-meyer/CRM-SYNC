@@ -9,7 +9,8 @@ This processor:
 """
 
 import logging
-from typing import Dict, Optional, List
+import requests
+from typing import Dict, Optional, List, Any
 from ..exceptions import (
     EmailProcessingError, NoteCreationError, SearchError, 
     ZohoApiError, GmailApiError, OpenAIApiError
@@ -32,19 +33,40 @@ class EmailProcessor:
         self._accounts_cache = None
         self._cache_populated = False
 
-    def process_emails(self):
+    def process_emails(self) -> Dict[str, Any]:
         """Main processing loop for new emails"""
         emails = self.gmail.get_starred_emails()  # or get_new_emails() for all new emails
         
         logger.info("Found %d emails to process", len(emails))
         
+        results = {
+            'total_emails': len(emails),
+            'processed': 0,
+            'failed': 0,
+            'errors': []
+        }
+        
         for msg in emails:
             try:
                 self._process_single_email(msg['id'])
+                results['processed'] += 1
             except (EmailProcessingError, GmailApiError, ZohoApiError, OpenAIApiError) as e:
                 logger.error("Error processing email %s: %s", msg['id'], e)
+                results['failed'] += 1
+                results['errors'].append(str(e))
+            except (KeyError, ValueError, TypeError) as e:
+                logger.error("Data validation error processing email %s: %s", msg['id'], e)
+                results['failed'] += 1
+                results['errors'].append(f"Data validation error: {str(e)}")
             except Exception as e:
-                logger.error("Unexpected error processing email %s: %s", msg['id'], e)
+                logger.error("Unexpected error processing email %s: %s", msg['id'], e, exc_info=True)
+                results['failed'] += 1
+                results['errors'].append(f"Unexpected error: {str(e)}")
+                # Re-raise critical errors that should stop processing
+                if isinstance(e, (MemoryError, SystemExit, KeyboardInterrupt)):
+                    raise
+        
+        return results
 
     def _process_single_email(self, msg_id: str):
         """Process a single email with enhanced reliability"""
@@ -174,8 +196,14 @@ class EmailProcessor:
         except ZohoApiError as e:
             logger.warning("Zoho API error during word search for '%s': %s", term, str(e))
             return []
+        except (requests.RequestException, ConnectionError, TimeoutError) as e:
+            logger.warning("Network error during word search for '%s': %s", term, str(e))
+            return []
+        except (ValueError, TypeError, KeyError) as e:
+            logger.error("Data error during word search for '%s': %s", term, str(e))
+            raise SearchError(f"Word search data error for '{term}': {str(e)}") from e
         except Exception as e:
-            logger.error("Unexpected error during word search for '%s': %s", term, str(e))
+            logger.error("Unexpected error during word search for '%s': %s", term, str(e), exc_info=True)
             raise SearchError(f"Word search failed for '{term}': {str(e)}") from e
 
     def _search_by_address_parts(self, address: str) -> Dict:
@@ -427,8 +455,20 @@ Please review and reassign if needed.
                 'success': False,
                 'error': f"Fallback note creation failed: {str(e)}"
             }
+        except (ZohoApiError, requests.RequestException) as e:
+            logger.error("API error during fallback note creation: %s", str(e))
+            return {
+                'success': False,
+                'error': f"Fallback note creation API error: {str(e)}"
+            }
+        except (ValueError, KeyError, TypeError) as e:
+            logger.error("Data error during fallback note creation: %s", str(e))
+            return {
+                'success': False,
+                'error': f"Fallback note creation data error: {str(e)}"
+            }
         except Exception as e:
-            logger.error("Unexpected error during fallback note creation: %s", str(e))
+            logger.error("Unexpected error during fallback note creation: %s", str(e), exc_info=True)
             return {
                 'success': False,
                 'error': f"Fallback note creation error: {str(e)}"
@@ -461,8 +501,16 @@ Please review and reassign if needed.
             logger.error("Zoho API error populating accounts cache: %s", str(e))
             self._accounts_cache = []
             self._cache_populated = True
+        except (requests.RequestException, ConnectionError) as e:
+            logger.error("Network error populating accounts cache: %s", str(e))
+            self._accounts_cache = []
+            self._cache_populated = True
+        except (ValueError, KeyError, TypeError) as e:
+            logger.error("Data error populating accounts cache: %s", str(e))
+            self._accounts_cache = []
+            self._cache_populated = True
         except Exception as e:
-            logger.error("Unexpected error populating accounts cache: %s", str(e))
+            logger.error("Unexpected error populating accounts cache: %s", str(e), exc_info=True)
             self._accounts_cache = []
             self._cache_populated = True
 
@@ -473,6 +521,11 @@ Please review and reassign if needed.
                 return response['data'][0].get('status') == 'success'
             elif 'success' in response:
                 return response['success']
+            elif 'note_id' in response:  # Our custom success format
+                return True
+        # Handle the case where response is just a note ID string or number
+        if response and str(response).strip():
+            return True
         return False
 
     def _extract_note_id(self, response: Dict) -> Optional[str]:
@@ -517,16 +570,20 @@ Please review and reassign if needed.
                         
                 except ZohoApiError as e:
                     logger.error("Zoho API error uploading attachment %s: %s", file_path, str(e))
+                except (requests.RequestException, IOError, OSError) as e:
+                    logger.error("File/network error uploading attachment %s: %s", file_path, str(e))
                 except Exception as e:
-                    logger.error("Unexpected error uploading attachment %s: %s", file_path, str(e))
+                    logger.error("Unexpected error uploading attachment %s: %s", file_path, str(e), exc_info=True)
             
             # Clean up temporary files
             self._cleanup_temp_files(downloaded_files)
             
         except GmailApiError as e:
             logger.error("Gmail API error processing email attachments: %s", str(e))
+        except (requests.RequestException, IOError, OSError) as e:
+            logger.error("File/network error processing email attachments: %s", str(e))
         except Exception as e:
-            logger.error("Unexpected error processing email attachments: %s", str(e))
+            logger.error("Unexpected error processing email attachments: %s", str(e), exc_info=True)
 
     def _cleanup_temp_files(self, file_paths: List[str]):
         """Clean up temporary attachment files"""
@@ -540,7 +597,7 @@ Please review and reassign if needed.
             except OSError as e:
                 logger.warning("Could not clean up temp file %s: %s", file_path, str(e))
             except Exception as e:
-                logger.warning("Unexpected error cleaning up temp file %s: %s", file_path, str(e))
+                logger.warning("Unexpected error cleaning up temp file %s: %s", file_path, str(e), exc_info=True)
 
     def process_specific_email(self, msg_id: str):
         """Process a specific email by ID"""
@@ -549,6 +606,9 @@ Please review and reassign if needed.
         except (EmailProcessingError, GmailApiError, ZohoApiError, OpenAIApiError) as e:
             logger.error("Error processing specific email %s: %s", msg_id, e)
             raise  # Re-raise specific exceptions for calling code to handle
+        except (ValueError, TypeError, KeyError) as e:
+            logger.error("Data validation error processing specific email %s: %s", msg_id, e)
+            raise EmailProcessingError(f"Data validation error: {str(e)}") from e
         except Exception as e:
-            logger.error("Unexpected error processing specific email %s: %s", msg_id, e)
-            raise EmailProcessingError(f"Failed to process email {msg_id}: {str(e)}") from e
+            logger.error("Unexpected error processing specific email %s: %s", msg_id, e, exc_info=True)
+            raise EmailProcessingError(f"Unexpected error: {str(e)}") from e

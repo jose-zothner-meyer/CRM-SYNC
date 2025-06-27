@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
 """
-Discover available Zoho CRM modules and their details.
+Enhanced Zoho Module Discovery Tool
+
+This tool discovers available Zoho CRM modules and tests access permissions.
+Integrated with the unified CRM-SYNC system with improved error handling.
+
+Usage:
+    python discover_zoho_modules.py
+    
+    # From main CLI (recommended)
+    python main.py discover-modules
+
+This tool is primarily intended for internal use and diagnostics.
+The main CLI provides a more user-friendly interface for module discovery.
 """
 
 import requests
@@ -8,49 +20,108 @@ import yaml
 import json
 import sys
 from pathlib import Path
+from typing import Dict, Any, List
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Add the project root to the Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from email_crm_sync.config.loader import ConfigLoader
+    from email_crm_sync.config import config
 except ImportError:
-    ConfigLoader = None
+    config = None
 
-def load_config():
-    """Load API configuration using the main config loader"""
-    if ConfigLoader:
+
+class ModuleDiscoveryError(Exception):
+    """Custom exception for module discovery errors"""
+
+def load_config() -> Dict[str, Any]:
+    """
+    Load API configuration using the centralized config or fallback to YAML.
+    
+    Returns:
+        Configuration dictionary
+        
+    Raises:
+        ModuleDiscoveryError: If configuration cannot be loaded
+        FileNotFoundError: If no config file is found
+    """
+    if config:
         try:
-            config_loader = ConfigLoader()
-            # Convert the config loader attributes to a dictionary
-            config = {
-                'zoho_access_token': config_loader.zoho_token,
-                'zoho_data_center': config_loader.zoho_data_center,
-                'zoho_base_url': getattr(config_loader, 'zoho_base_url', 'https://www.zohoapis.com/crm/v8'),
-                'zoho_developments_module': getattr(config_loader, 'zoho_developments_module', 'Accounts')
+            # Convert the config attributes to a dictionary
+            config_dict = {
+                'zoho_access_token': config.zoho_token,
+                'zoho_data_center': config.zoho_data_center,
+                'zoho_base_url': getattr(config, 'zoho_base_url', 'https://www.zohoapis.com/crm/v8'),
+                'zoho_developments_module': getattr(config, 'zoho_developments_module', 'Accounts')
             }
-            return config
-        except Exception as e:
-            print(f"⚠️ Could not load from main config loader: {e}")
+            
+            # Validate required fields
+            if not config_dict.get('zoho_access_token'):
+                raise ModuleDiscoveryError("Missing zoho_access_token in centralized config")
+                
+            logger.info("✅ Using centralized configuration")
+            return config_dict
+        except AttributeError as e:
+            logger.warning("⚠️ Could not load from centralized config: %s", e)
+        except ImportError as e:
+            logger.warning("⚠️ Unexpected error loading centralized config: %s", e)
     
     # Fallback to YAML loading
     config_paths = [
         '../config/api_keys.yaml',
-        '../email_crm_sync/config/api_keys.yaml'
+        '../email_crm_sync/config/api_keys.yaml',
+        'config/api_keys.yaml',
+        'email_crm_sync/config/api_keys.yaml'
     ]
     
     for path in config_paths:
-        if Path(path).exists():
-            with open(path, 'r') as f:
-                return yaml.safe_load(f)
+        config_file = Path(path)
+        if config_file.exists():
+            try:
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    config_data = yaml.safe_load(f)
+                
+                if not isinstance(config_data, dict):
+                    logger.warning("Config file %s does not contain a valid dictionary", path)
+                    continue
+                
+                if not config_data.get('zoho_access_token'):
+                    logger.warning("Config file %s missing zoho_access_token", path)
+                    continue
+                
+                logger.info("✅ Using config file: %s", path)
+                return config_data
+            except yaml.YAMLError as e:
+                logger.warning("Invalid YAML in %s: %s", path, e)
+                continue
+            except IOError as e:
+                logger.warning("Error reading %s: %s", path, e)
+                continue
     
-    raise FileNotFoundError("No config file found")
+    raise FileNotFoundError("No valid config file found with zoho_access_token")
 
-def discover_modules(config):
-    """Discover available Zoho CRM modules"""
+def discover_modules(config_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Discover available Zoho CRM modules.
+    
+    Args:
+        config_data: Configuration dictionary containing API credentials
+        
+    Returns:
+        List of module information dictionaries
+        
+    Raises:
+        ModuleDiscoveryError: If modules cannot be discovered
+        requests.RequestException: If HTTP request fails
+    """
     # Build the correct base URL based on data center
-    data_center = config.get('zoho_data_center', 'com')
+    data_center = config_data.get('zoho_data_center', 'com')
     if data_center == 'eu':
         base_url = 'https://www.zohoapis.eu/crm/v8'
     elif data_center == 'in':
@@ -60,26 +131,26 @@ def discover_modules(config):
     else:
         base_url = 'https://www.zohoapis.com/crm/v8'
     
-    access_token = config['zoho_access_token']
+    access_token = config_data['zoho_access_token']
     
     headers = {
         'Authorization': f'Bearer {access_token}',
         'Content-Type': 'application/json'
     }
     
-    print("🔍 Discovering Zoho CRM Modules...")
-    print("=" * 50)
+    logger.info("🔍 Discovering Zoho CRM Modules...")
+    logger.info("=" * 50)
     
     try:
         # Get all modules
-        response = requests.get(f"{base_url}/settings/modules", headers=headers)
+        response = requests.get(f"{base_url}/settings/modules", headers=headers, timeout=30)
         
         if response.status_code == 200:
             data = response.json()
             modules = data.get('modules', [])
             
-            print(f"✅ Found {len(modules)} modules:")
-            print()
+            logger.info("✅ Found %d modules:", len(modules))
+            logger.info("")
             
             for module in modules:
                 api_name = module.get('api_name', 'N/A')
@@ -87,26 +158,39 @@ def discover_modules(config):
                 module_name = module.get('module_name', 'N/A')
                 is_custom = module.get('generated_type', 'default') == 'custom'
                 
-                print(f"📋 {display_label}")
-                print(f"   API Name: {api_name}")
-                print(f"   Module Name: {module_name}")
-                print(f"   Custom: {'Yes' if is_custom else 'No'}")
-                print()
+                logger.info("📋 %s", display_label)
+                logger.info("   API Name: %s", api_name)
+                logger.info("   Module Name: %s", module_name)
+                logger.info("   Custom: %s", 'Yes' if is_custom else 'No')
+                logger.info("")
                 
             return modules
         else:
-            print(f"❌ Failed to get modules: {response.status_code}")
-            print(f"Response: {response.text}")
-            return []
+            error_msg = f"Failed to get modules: {response.status_code}"
+            logger.error("❌ %s", error_msg)
+            logger.error("Response: %s", response.text)
+            raise ModuleDiscoveryError(error_msg)
             
-    except Exception as e:
-        print(f"❌ Error discovering modules: {e}")
-        return []
+    except requests.RequestException as e:
+        logger.error("❌ Network error discovering modules: %s", e)
+        raise
+    except json.JSONDecodeError as e:
+        logger.error("❌ Invalid JSON response: %s", e)
+        raise ModuleDiscoveryError(f"Invalid JSON response: {e}") from e
 
-def check_module_access(config, module_name):
-    """Check if we can access a specific module"""
+def check_module_access(config_data: Dict[str, Any], module_name: str) -> bool:
+    """
+    Check if we can access a specific module.
+    
+    Args:
+        config_data: Configuration dictionary containing API credentials
+        module_name: Name of the module to test
+        
+    Returns:
+        True if module is accessible, False otherwise
+    """
     # Build the correct base URL based on data center
-    data_center = config.get('zoho_data_center', 'com')
+    data_center = config_data.get('zoho_data_center', 'com')
     if data_center == 'eu':
         base_url = 'https://www.zohoapis.eu/crm/v8'
     elif data_center == 'in':
@@ -116,57 +200,88 @@ def check_module_access(config, module_name):
     else:
         base_url = 'https://www.zohoapis.com/crm/v8'
         
-    access_token = config['zoho_access_token']
+    access_token = config_data['zoho_access_token']
     
     headers = {
         'Authorization': f'Bearer {access_token}',
         'Content-Type': 'application/json'
     }
     
-    print(f"\n🔍 Testing access to '{module_name}' module...")
+    logger.info("\n🔍 Testing access to '%s' module...", module_name)
     
     try:
         # Try to get records from the module with required fields parameter
         params = {'per_page': 1, 'fields': 'id,Created_Time'}
-        response = requests.get(f"{base_url}/{module_name}", headers=headers, params=params)
+        response = requests.get(f"{base_url}/{module_name}", headers=headers, params=params, timeout=30)
         
         if response.status_code == 200:
             data = response.json()
             count = len(data.get('data', []))
-            print(f"✅ Can access '{module_name}' - Found {count} sample records")
+            logger.info("✅ Can access '%s' - Found %d sample records", module_name, count)
             return True
         else:
-            print(f"❌ Cannot access '{module_name}': {response.status_code}")
-            print(f"Response: {response.text}")
+            logger.warning("❌ Cannot access '%s': %d", module_name, response.status_code)
+            logger.warning("Response: %s", response.text)
             return False
             
-    except Exception as e:
-        print(f"❌ Error checking module access: {e}")
+    except requests.RequestException as e:
+        logger.error("❌ Network error checking module access: %s", e)
+        return False
+    except json.JSONDecodeError as e:
+        logger.error("❌ Invalid JSON response checking module: %s", e)
         return False
 
 def main():
+    """
+    Main function to discover Zoho modules and test access.
+    
+    This tool is primarily intended for internal use and diagnostics.
+    The main CLI provides a more user-friendly interface via:
+    python main.py discover-modules
+    """
     try:
-        config = load_config()
-        print(f"Using Zoho Data Center: {config.get('zoho_data_center', 'com')}")
-        print(f"Using Zoho Base URL: {config.get('zoho_base_url')}")
-        print()
+        logger.info("🔍 Starting Zoho module discovery...")
+        
+        # Load configuration
+        config_data = load_config()
+        data_center = config_data.get('zoho_data_center', 'com')
+        base_url = config_data.get('zoho_base_url', f'https://www.zohoapis.{data_center}/crm/v8')
+        
+        logger.info("Using Zoho Data Center: %s", data_center)
+        logger.info("Using Zoho Base URL: %s", base_url)
+        logger.info("")
         
         # Discover all modules
-        modules = discover_modules(config)
+        modules = discover_modules(config_data)
         
         if modules:
             # Test access to common module names
             test_modules = ['Developments', 'Deals', 'Contacts', 'Accounts', 'Leads']
             
-            print("\n" + "=" * 50)
-            print("🧪 Testing Module Access...")
-            print("=" * 50)
+            logger.info("")
+            logger.info("=" * 50)
+            logger.info("🧪 Testing Module Access...")
+            logger.info("=" * 50)
             
+            accessible_modules = []
             for module_name in test_modules:
-                check_module_access(config, module_name)
+                if check_module_access(config_data, module_name):
+                    accessible_modules.append(module_name)
+            
+            logger.info("\n📊 Summary:")
+            logger.info("Total modules discovered: %d", len(modules))
+            logger.info("Tested modules: %d", len(test_modules))
+            logger.info("Accessible modules: %d (%s)", len(accessible_modules), ', '.join(accessible_modules))
         
-    except Exception as e:
-        print(f"❌ Error: {e}")
+    except ModuleDiscoveryError as e:
+        logger.error("❌ Module discovery error: %s", e)
+        sys.exit(1)
+    except FileNotFoundError as e:
+        logger.error("❌ Configuration error: %s", e)
+        sys.exit(1)
+    except requests.RequestException as e:
+        logger.error("❌ Network error: %s", e)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

@@ -55,8 +55,7 @@ def check_configuration():
         return False
     
     try:
-        from email_crm_sync.config.loader import ConfigLoader
-        config = ConfigLoader()
+        from email_crm_sync.config import config
         
         # Check required fields
         if not config.openai_key or config.openai_key == "your-openai-api-key":
@@ -89,18 +88,18 @@ def test_zoho_connection():
         if result.returncode == 0:
             logger.info("✅ Zoho CRM connection successful")
             print(result.stdout)
-            return True
+            assert True
         else:
             logger.error("❌ Zoho CRM connection failed")
             print(result.stderr)
-            return False
+            assert False, f"Zoho CRM connection failed with code {result.returncode}"
             
     except subprocess.TimeoutExpired:
         logger.error("❌ Zoho CRM test timed out")
-        return False
+        assert False, "Zoho CRM test timed out"
     except Exception as e:
         logger.error("❌ Zoho CRM test failed: %s", e)
-        return False
+        assert False, f"Zoho CRM test failed: {e}"
 
 def test_developments_module():
     """Test the specific Developments module"""
@@ -112,18 +111,18 @@ def test_developments_module():
         if result.returncode == 0:
             logger.info("✅ Developments module test passed")
             print(result.stdout)
-            return True
+            assert True
         else:
             logger.error("❌ Developments module test failed")
             print(result.stderr)
-            return False
+            assert False, f"Developments module test failed with code {result.returncode}"
             
     except subprocess.TimeoutExpired:
         logger.error("❌ Developments module test timed out")
-        return False
+        assert False, "Developments module test timed out"
     except Exception as e:
         logger.error("❌ Developments module test failed: %s", e)
-        return False
+        assert False, f"Developments module test failed: {e}"
 
 def run_email_sync_test():
     """Run a test of the email sync process"""
